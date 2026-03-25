@@ -110,10 +110,24 @@ docker rm bad-container good-container
 
   
 
-Плохие практики по работе с контейнерами:
+**Плохие практики по работе с контейнерами:**
 
-1. 
-2. 
+1. Запуск с флагом ```--privileged```:
+   ```
+   docker run --privileged app:good
+   ```
+   это плохо, потому что дает контейнеру все возможности хоста, например, доступ к утройствам, сети и тд.
+2. Передача чувствительных данных, например, ключей или паролей, через переменные окружения:
+   ```
+   docker run -d -e PASSWORS="1q2w3e4r5t6y" --name demo app:good
+   ```
+   в этом случае любой пользователь с доступом к докеру может прочитать эти данные, например, с помощью ```docker inspect```
+   ```
+   docker inspect demo | Select-String "PASSWORS"
+   ```
+   <img width="815" height="90" alt="pass" src="https://github.com/user-attachments/assets/1e8ced47-dfa9-45ee-989e-f008dc817ef6" />
+   
+   к тому же они попадают в историю bash команд и могут попасть в логи.
 
 ## Часть 2
 
