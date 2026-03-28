@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - PASSWORD=1q2w3e4r5t6y
+      - KEY=abc
+    privileged: true
+    volumes:
+      - /:/host
+    networks:
+      - default
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - default
+
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=1q2w3e4r5t6y
+    ports:
+      - "5432:5432"
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge
