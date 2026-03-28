@@ -133,23 +133,200 @@ docker rm bad-container good-container
 
 Пример "плохого" Docker compose файла:
 ```
+version: '3'
 
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - PASSWORD=1q2w3e4r5t6y
+      - KEY=abc
+    privileged: true
+    volumes:
+      - /:/host
+    networks:
+      - default
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - default
+
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=1q2w3e4r5t6y
+    ports:
+      - "5432:5432"
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge
 ```
-1. Плохо и почему
-2. Плохо и почему
-3. Плохо и почему
+1. Пароли хранятся прямо в ```docker-compose.yml```. Это плохо, потому что они попадают систему контроля версий при коммите и, чтобы их изменить необходимо редактировать ```docker-compose.yml```.
+2. ```Privileged``` режим и монтирование корня хоста. Первое дает контейнеру полный доступ к хост-системе, второе монтирует всю файловую систему хоста в контейнер. Это плохо, потому что злоумышленник может читать/удалять любые файлы на сервере, менять настройки сети и тд.
+3. Все сервисы находятся в одной сети и видят друг друга. Это может привести к тому, что атака на один сервис даст доступ ко всем остальным, находящимся в этой сети.
 
 Пример "хорошего" Docker compose файла:
 ```
+version: '3.8'
 
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app:ro
+    networks:
+      - frontend
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - backend
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  db:
+    image: postgres:15-alpine
+    env_file:
+      - .env.db
+    networks:
+      - backend
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true
+
+volumes:
+  redis_data:
+  postgres_data:
 ```
-1. 
-2. 
-3. 
+1. Пароли вынесены в отдельный файл ```.env```, который можно добавить в ```.dockerignore```, чтобы они не попали в систему контроля версий. Напрямую больше нет возможности прочитать пароли из ```docker-compose.yml``` и не требуется менять этот файл при изменении паролей.
+2. Убран флаг ```privileged``` и монтируется только необходимая для запуска приложений папка, а не весь хост. Кроме того, добавлен флаг ```:ro```, запрещающий запись в контейнер.
+3. Созданы две изолированные сети: ```frontend``` и ```backend```. Кроме того, сеть ```backend``` помечена как ```internal: true```, что делает ее недоступной извне.
 
-В исправленном файле настроим сервисы так, чтобы контейнеры рамках этого compose-проекта поднимались вместе, но не видели друг друга по сети.
+Результаты запуска:
+* сборка и запуск контейнеров:
+  ```
+  docker-compose up -d --build
+  ```
+* проверка контейнеров:
+  ```
+  docker-compose ps
+  ```
+  <img width="1906" height="163" alt="badstatus" src="https://github.com/user-attachments/assets/18f6e0ca-27ed-40d5-b103-e0fa7db1db3c" />
+
+  <img width="1902" height="169" alt="goodstatus" src="https://github.com/user-attachments/assets/054ba80f-a58a-47fc-9d5a-6e709170d102" />
+
+
+
+* проверка образов:
+  ```
+  docker images | Select-String "bad"
+  docker images | Select-String "good"
+  ```
+  <img width="850" height="118" alt="badimag" src="https://github.com/user-attachments/assets/f1afdfc3-6302-4c29-b000-549a5c113f2d" />
+
+  <img width="852" height="111" alt="goodimage" src="https://github.com/user-attachments/assets/59dc0f67-9966-4b83-a69f-da1ed3c03dae" />
+
+
+  
+
+* проверка сетей:
+  ```
+  docker network ls | Select-String "bad"
+  docker network ls | Select-String "good"
+  ```
+
+  <img width="805" height="77" alt="badnet" src="https://github.com/user-attachments/assets/31259ff2-b55a-41ee-84d6-e602337df279" />
+
+  <img width="816" height="92" alt="goodnet" src="https://github.com/user-attachments/assets/962f07c2-02ef-4d05-bd1a-81aa8c38271c" />
+
+  Видим, что в плохом случае у нас одна общая сеть, в то время как в улучшеном варианте есть разделение сервисов по двум сетям.
+
+
+
+* проверка доступа к хосту:
+  ```
+  docker exec good-web-1 ls /host
+  ```
+
+  <img width="736" height="686" alt="badtask2" src="https://github.com/user-attachments/assets/ed0155f4-fbaa-4a77-8ba2-e025451effc1" />
+
+  <img width="739" height="52" alt="goodtask2" src="https://github.com/user-attachments/assets/75457d0b-4a1d-4173-8426-d62da5e43645" />
+
+  Заметим, что в плохом случае мы имеем доступ ко всему содержимому директории хоста, в то время как в улучшеном случае доступ закрыт.
+
+
+
+* проверка изоляции:
+  ```
+  docker exec bad-web-1 python -c "import socket; s=socket.socket(); s.settimeout(2); r=s.connect_ex(('redis', 6379)); print('CONNECTED' if r == 0 else 'FAILED'); s.close()" 2>&1
+
+  docker exec good-web-1 python -c "import socket; s=socket.socket(); s.settimeout(2); r=s.connect_ex(('redis', 6379)); print('CONNECTED' if r == 0 else 'FAILED'); s.close()" 2>&1
+  ```
+  <img width="1890" height="63" alt="badtask3" src="https://github.com/user-attachments/assets/23a5ab9c-61e6-4cdf-8f6f-f058e8925c7c" />
+
+
+
+
+  <img width="1866" height="76" alt="goodtask3" src="https://github.com/user-attachments/assets/224e893a-2157-4aad-af79-932278af2b74" />
+
+  В плохом случае у нас есть доступ из ```web``` к ```redis```, потому что все сервисы находятся в одной сети. В улучшеной версии мы не можем подключиться из ```web``` к ```redis```, так как они находятся в разных сетях и изолированны друг от друга.
+
+  
+
+* остановка контейнеров:
+  ```
+  docker-compose down -v
+  ```
+
+В исправленном файле сервисы настроены так, чтобы контейнеры рамках этого compose-проекта поднимались вместе, но не видели друг друга по сети.
 
 _Как этого достигли?_
 
-_Объяснение принципа изоляции:_
+В ```docker-compose.yml``` настроены две отдельные сети с разным уровнем доступа:
+
+```
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true
+```
+каждый сервис подключен только к необходимой ему сети. Флаг ```internal: true``` у сети ```backend``` означает, что сеть является внутренней и не имеет доступа к другим сетям. Docker использует отельные bridge-интерфейсы и изолированный DNS для каждой сети. В итоге приложения из разных сетей не видят друг друга.
 
