@@ -55,3 +55,45 @@ kubectl port-forward service/simple-app-service 5000:80
 
 
 ## Часть 2
+**Создание шаблона helm-chart:**
+```
+helm create helm-chart
+```
+в созданном шаблоне в папке ```/templates/``` оставляем только ```_helpers.tpl```, ```deployment.yaml```, ```service.yaml```.
+
+**Проверка на ошибки:**
+```
+helm lint ./helm-chart
+```
+
+<img width="622" height="89" alt="helm_lint" src="https://github.com/user-attachments/assets/5d2acedb-4e43-44bf-b801-547be008cf79" />
+
+**Деплой в кластер:**
+```
+helm install myapp ./helm-chart
+```
+
+<img width="721" height="153" alt="inst1" src="https://github.com/user-attachments/assets/bae4da39-d21b-4308-a4fd-3bcf6682f662" />
+
+**Проверка подов:**
+```
+kubectl get pods
+```
+
+<img width="582" height="80" alt="pods_2" src="https://github.com/user-attachments/assets/fda7ae0c-9869-46e5-b93e-b59e447a3520" />
+
+
+**Получение доступа к релизу:**
+```
+kubectl get svc myappservice
+```
+<img width="685" height="61" alt="findhost" src="https://github.com/user-attachments/assets/e0aa8aa4-933d-44f9-ac90-701328414b1f" />
+
+После перехода по заданному адресу получаем:
+
+<img width="523" height="114" alt="hostcat_" src="https://github.com/user-attachments/assets/1572e223-9c18-496e-b049-3386ef667668" />
+
+
+
+
+
