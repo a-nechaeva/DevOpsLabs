@@ -34,13 +34,13 @@ kubectl apply -f k8s/
 ```
 <img width="633" height="78" alt="servicesk8s" src="https://github.com/user-attachments/assets/a50d7676-e648-4794-9fc7-5ee8d2563f12" />
 
-**Провекрка подов:**
+**Проверка подов:**
 ```
 kubectl get pods
 ```
 <img width="586" height="78" alt="pods" src="https://github.com/user-attachments/assets/3af8bfbe-5f83-47c6-93ee-b2eade6ace56" />
 
-**Получение доступа к приложению**
+**Получение доступа к приложению:**
 ```
 kubectl port-forward service/simple-app-service 5000:80
 ```
