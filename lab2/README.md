@@ -55,3 +55,94 @@ kubectl port-forward service/simple-app-service 5000:80
 
 
 ## Часть 2
+**Создание шаблона helm-chart:**
+```
+helm create helm-chart
+```
+в созданном шаблоне в папке ```/templates/``` оставляем только ```_helpers.tpl```, ```deployment.yaml```, ```service.yaml```.
+
+**Проверка на ошибки:**
+```
+helm lint ./helm-chart
+```
+
+<img width="622" height="89" alt="helm_lint" src="https://github.com/user-attachments/assets/5d2acedb-4e43-44bf-b801-547be008cf79" />
+
+**Деплой в кластер:**
+```
+helm install myapp ./helm-chart
+```
+
+<img width="721" height="153" alt="inst1" src="https://github.com/user-attachments/assets/bae4da39-d21b-4308-a4fd-3bcf6682f662" />
+
+**Проверка подов:**
+```
+kubectl get pods
+```
+
+<img width="582" height="80" alt="pods_2" src="https://github.com/user-attachments/assets/fda7ae0c-9869-46e5-b93e-b59e447a3520" />
+
+
+**Получение доступа к релизу:**
+```
+kubectl get svc myappservice
+```
+<img width="685" height="61" alt="findhost" src="https://github.com/user-attachments/assets/e0aa8aa4-933d-44f9-ac90-701328414b1f" />
+
+После перехода по заданному адресу получаем:
+
+<img width="523" height="114" alt="hostcat_" src="https://github.com/user-attachments/assets/1572e223-9c18-496e-b049-3386ef667668" />
+
+**Внесение изменений в сервис:**
+
+Поменяем отображаемое на веб-странице выражение:
+```
+def meo():
+    return "^..^ v2.0"
+```
+
+**Пересборка Docker-образа:**
+```
+docker build -t simple-app:latest .
+```
+
+<img width="885" height="438" alt="build20" src="https://github.com/user-attachments/assets/90326e7c-6cee-4e08-9001-1026a9a06287" />
+
+
+**Обновление приложения:**
+```
+helm upgrade myapp ./helm-chart
+```
+
+<img width="706" height="160" alt="upd" src="https://github.com/user-attachments/assets/e4b62e38-af88-4eeb-b7f9-6b55a75b9cce" />
+
+
+**Проверка истории релизов:**
+```
+helm history myapp
+```
+
+<img width="966" height="74" alt="history20" src="https://github.com/user-attachments/assets/291bd411-b169-42a8-8b76-d79998c3b5fe" />
+
+**Обновление деплоя:**
+
+```
+kubectl rollout restart deployment/myappdeployment
+```
+
+<img width="855" height="40" alt="restart" src="https://github.com/user-attachments/assets/739c4119-20fa-4658-afb3-1e4aa9b493e1" />
+
+**Результат апгрейда:**
+
+<img width="526" height="107" alt="cat_v20" src="https://github.com/user-attachments/assets/a49c6363-24d5-4ac5-9010-8a2cdb6880c5" />
+
+**В чем преимущества использования helm над классическими кубер манифестами:**
+1. Helm хранит историю всех релизов. Если в обновлении приложения что-то сломалось, то можно откатиться к предыдущей стабильной версии. Без helm нужно вручную искать старые манифесты и перезапускать все заново.
+2. При использовании helm все приложение разворачивается одной командой ```helm install``` вместо подключения целой папки yaml-файлов. 
+3. Также helm позволяет создать один шаблон и использовать его для разных окружений, просто меняя параметры конфигурации, не нужно копировать и редактировать yaml-файлы.
+
+
+
+
+
+
