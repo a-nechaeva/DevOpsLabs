@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def meo():
-    return "^..^"
+    return "^..^ v2.0"
 
 @app.route('/health')
 def health():
