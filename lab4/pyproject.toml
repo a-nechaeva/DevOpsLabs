@@ -7,6 +7,6 @@ name = "flask-lab4"
 version = "0.1.0"
 description = "Lab 4: CI/CD Best Practices"
 requires-python = ">=3.8"
-dependencies = [
-    "Flask>=3.0.0",
-]
+
+[tool.setuptools]
+py-modules = ["app"]

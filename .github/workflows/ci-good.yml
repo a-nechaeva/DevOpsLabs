@@ -64,7 +64,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - run: pip install -r lab4/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
         working-directory: ./lab4
       - run: python -m build
         working-directory: ./lab4
