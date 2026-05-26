@@ -42,3 +42,15 @@
 
 
 ## Часть 2
+
+   Проверены три уязвимости настроенного в первой части работы nginx:
+
+   *  Path Traversal (обход путей). Проверено, можно ли выйти за пределы ```/usr/share/nginx/html/```:
+      <img width="1037" height="242" alt="p2_pt_part1" src="https://github.com/user-attachments/assets/4df359e3-208f-4df4-8cb5-84632a8a3abd" />
+
+   *  Directory Listing (получение списка файлов). Проверено, можно ли увидеть содержимое директорий:
+      <img width="895" height="288" alt="p2_dl" src="https://github.com/user-attachments/assets/172c4556-c1da-4bcd-bd52-563548a0b62f" />
+
+      Для ```/shared/``` мы видим список файлов и это ожидаемо, так как включена директива ```autoindex```. В случае ```/static-files/``` не должно быть прямого доступа к содержимомму директории, в данном случае это потенциальная уязвимость.
+
+
