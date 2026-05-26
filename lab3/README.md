@@ -18,6 +18,7 @@
 
 Проверено, что настроенный nginx соответствуюет требованиям тз:
 *  работает с https сертификатом:
+  
    <img width="543" height="158" alt="app1_https" src="https://github.com/user-attachments/assets/638ee8e9-2021-4e6a-99c8-af07c254a77f" />
    <img width="540" height="144" alt="app2_https" src="https://github.com/user-attachments/assets/2a7a5825-87f1-48d0-8be6-a2d2b7a7b103" />
 
