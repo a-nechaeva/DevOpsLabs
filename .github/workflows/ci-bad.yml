@@ -30,6 +30,7 @@ jobs:
 
       - name: Build package
         run: python -m build
+        working-directory: ./lab4
         env:
           API_KEY: "sk-1234567890abcdef"
           DB_PASSWORD: "super_secret_123"

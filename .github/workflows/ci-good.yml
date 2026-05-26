@@ -65,11 +65,13 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - run: pip install -r lab4/requirements-dev.txt
+        working-directory: ./lab4
       - run: python -m build
+        working-directory: ./lab4
       - uses: actions/upload-artifact@v4
         with:
           name: flask-package
-          path: dist/
+          path: lab4/dist/
           retention-days: 7
 
   deploy:
