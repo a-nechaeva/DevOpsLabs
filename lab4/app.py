@@ -1,10 +1,13 @@
 from flask import Flask
 
+
 app = Flask(__name__)
+
 
 @app.route('/')
 def meo():
     return "^..^"
+
 
 @app.route('/health')
 def health():
