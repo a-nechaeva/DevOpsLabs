@@ -1,0 +1,8 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "flask-lab4"
+version = "0.1.0"
+description = "Lab 4: CI/CD Best Practices"
