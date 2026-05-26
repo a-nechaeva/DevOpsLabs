@@ -23,8 +23,8 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - run: pip install -r requirements-dev.txt
-      - run: flake8 app.py test_app.py
+      - run: pip install -r lab4/requirements-dev.txt
+      - run: flake8 lab4/app.py lab4/test_app.py
 
   security:
     name: Security Audit
@@ -36,7 +36,7 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - run: pip install pip-audit
-      - run: pip-audit -r requirements.txt
+      - run: pip-audit -r lab4/requirements.txt
 
   test:
     name: Run tests
@@ -48,7 +48,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - run: pip install -r requirements-dev.txt
+      - run: pip install -r lab4/requirements-dev.txt
       - run: pytest --cov=app --cov-report=xml
       - uses: codecov/codecov-action@v3
 
@@ -62,7 +62,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - run: pip install -r requirements-dev.txt
+      - run: pip install -r lab4/requirements-dev.txt
       - run: python -m build
       - uses: actions/upload-artifact@v4
         with:

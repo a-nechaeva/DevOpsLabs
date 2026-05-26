@@ -21,7 +21,7 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install -r requirements-dev.txt
+        run: pip install -r lab4/requirements-dev.txt
 
       - name: Lint code
         run: flake8 .
