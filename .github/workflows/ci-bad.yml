@@ -26,7 +26,7 @@ jobs:
         run: pip install -r lab4/requirements-dev.txt
 
       - name: Lint code
-        run: flake8 .
+        run: flake8 lab4/
 
       - name: Build package
         run: python -m build
