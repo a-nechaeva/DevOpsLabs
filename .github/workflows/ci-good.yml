@@ -3,8 +3,12 @@ name: CI/CD Pipeline - BEST PRACTICES
 on:
   push:
     branches: [main]
+    paths:
+      - 'lab4/**'
   pull_request:
     branches: [main]
+    paths:
+      - 'lab4/**'
 
 permissions:
   contents: read

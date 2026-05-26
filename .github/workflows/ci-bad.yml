@@ -1,6 +1,14 @@
 name: CI/CD Pipeline - BAD PRACTICES
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lab4/**'          
+  pull_request:
+    branches: [main]
+    paths:
+      - 'lab4/**'         
 
 jobs:
   monolith-pipeline:
