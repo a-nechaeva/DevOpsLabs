@@ -6,11 +6,6 @@ on:
     paths:
       - 'lab4/**'
       - '.github/workflows/ci-vault.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'lab4/**'
-      - '.github/workflows/ci-vault.yml'
 
 jobs:
   vault-demo:
@@ -22,14 +17,22 @@ jobs:
       
       - name: Install Vault CLI
         run: |
+          rm -rf vault vault.zip
+          
           curl -fsSL https://releases.hashicorp.com/vault/1.15.0/vault_1.15.0_linux_amd64.zip -o vault.zip
           unzip -o vault.zip
           sudo mv vault /usr/local/bin/
           rm -f vault.zip
+          
+          echo "Vault CLI installed"
           vault --version
       
       - name: Start Vault in Docker
         run: |
+          # Очищаем старый контейнер если есть
+          docker stop vault-server 2>/dev/null || true
+          docker rm vault-server 2>/dev/null || true
+          
           docker run -d --name vault-server \
             -e VAULT_DEV_ROOT_TOKEN_ID="myroot" \
             -e VAULT_DEV_LISTEN_ADDRESS="0.0.0.0:8200" \
@@ -57,7 +60,7 @@ jobs:
           export VAULT_ADDR='http://127.0.0.1:8200'
           export VAULT_TOKEN='myroot'
           
-          vault secrets enable -path=secret kv-v2 2>/dev/null || echo "Secrets engine may already exist"
+          vault secrets enable -path=secret kv-v2 2>/dev/null || true
           
           vault kv put secret/cicd/lab4 \
             api_key="vault-super-secret-key-12345" \
@@ -76,7 +79,7 @@ jobs:
           echo "::add-mask::$API_KEY"
           
           echo "api_key=$API_KEY" >> $GITHUB_OUTPUT
-          echo "Secret masked"
+          echo "Secret retrieved and masked"
       
       - name: Use Secret Safely
         run: |
@@ -90,3 +93,4 @@ jobs:
         run: |
           docker stop vault-server 2>/dev/null || true
           docker rm vault-server 2>/dev/null || true
+          rm -rf vault vault.zip
