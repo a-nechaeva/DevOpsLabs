@@ -1,31 +1,21 @@
-name: CI/CD with Vault
+name: CI/CD with vault
 
 on:
   push:
     branches: [main]
     paths:
       - 'lab4/**'
-      - '.github/workflows/**'
+      - '.github/workflows/ci-vault.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'lab4/**'
+      - '.github/workflows/ci-vault.yml'
 
 jobs:
   vault-demo:
-    name: Vault Integration Demo
+    name: Vault Secrets Demo
     runs-on: ubuntu-latest
-    
-    services:
-      vault:
-        image: hashicorp/vault:latest
-        env:
-          VAULT_DEV_ROOT_TOKEN_ID: "myroot"
-          VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
-        ports:
-          - 8200:8200
-        options: >-
-          --cap-add=IPC_LOCK
-          --health-cmd "vault status -format=json"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     
     steps:
       - uses: actions/checkout@v4
@@ -35,21 +25,67 @@ jobs:
           curl -fsSL https://releases.hashicorp.com/vault/1.15.0/vault_1.15.0_linux_amd64.zip -o vault.zip
           unzip vault.zip
           sudo mv vault /usr/local/bin/
+          vault --version
+      
+      - name: Start Vault in Docker
+        run: |
+          docker run -d --name vault-server \
+            -e VAULT_DEV_ROOT_TOKEN_ID="myroot" \
+            -e VAULT_DEV_LISTEN_ADDRESS="0.0.0.0:8200" \
+            -p 8200:8200 \
+            --cap-add=IPC_LOCK \
+            hashicorp/vault:latest
+          
+          echo "Waiting for Vault to start..."
+          sleep 10
+          
+          export VAULT_ADDR='http://127.0.0.1:8200'
+          export VAULT_TOKEN='myroot'
+          
+          for i in {1..10}; do
+            if vault status 2>/dev/null; then
+              echo "Vault is ready!"
+              break
+            fi
+            echo "Attempt $i/10..."
+            sleep 3
+          done
       
       - name: Initialize Vault & Store Secrets
         run: |
           export VAULT_ADDR='http://127.0.0.1:8200'
           export VAULT_TOKEN='myroot'
           
-          vault secrets enable -path=secret kv-v2
+          vault secrets enable -path=secret kv-v2 2>/dev/null || echo "Secrets engine may already exist"
           
           vault kv put secret/cicd/lab4 \
-            api_key="demo-secret-key-12345" \
-            db_password="demo-secure-password-67890"
+            api_key="vault-super-secret-key-12345" \
+            db_password="vault-secure-password-67890"
           
+          echo "Secrets stored in Vault"
       
-      - name: Read and Use Secrets
+      - name: Read Secrets (Masked)
+        id: get-secrets
         run: |
           export VAULT_ADDR='http://127.0.0.1:8200'
           export VAULT_TOKEN='myroot'
-          echo "Vault working"
+          
+          API_KEY=$(vault kv get -field=api_key secret/cicd/lab4)
+          
+          echo "::add-mask::$API_KEY"
+          
+          echo "api_key=$API_KEY" >> $GITHUB_OUTPUT
+          echo "Secret masked"
+      
+      - name: Use Secret Safely
+        run: |
+          echo "Using API Key: ${API_KEY:0:4}****${API_KEY: -4}"
+          echo "Application deployed securely with Vault!"
+        env:
+          API_KEY: ${{ steps.get-secrets.outputs.api_key }}
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop vault-server 2>/dev/null || true
+          docker rm vault-server 2>/dev/null || true
