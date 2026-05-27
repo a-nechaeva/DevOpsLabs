@@ -9,7 +9,7 @@ on:
 
 jobs:
   vault-demo:
-    name: Vault Secrets Demo
+    name: Vault
     runs-on: ubuntu-latest
     
     steps:
