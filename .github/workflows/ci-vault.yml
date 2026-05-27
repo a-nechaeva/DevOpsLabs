@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'lab4/**'
+      - '.github/workflows/**'
 
 jobs:
   vault-demo:
