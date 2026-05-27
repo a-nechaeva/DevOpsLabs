@@ -1,0 +1,54 @@
+name: CI/CD with Vault
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lab4/**'
+
+jobs:
+  vault-demo:
+    name: Vault Integration Demo
+    runs-on: ubuntu-latest
+    
+    services:
+      vault:
+        image: hashicorp/vault:latest
+        env:
+          VAULT_DEV_ROOT_TOKEN_ID: "myroot"
+          VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+        ports:
+          - 8200:8200
+        options: >-
+          --cap-add=IPC_LOCK
+          --health-cmd "vault status -format=json"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Vault CLI
+        run: |
+          curl -fsSL https://releases.hashicorp.com/vault/1.15.0/vault_1.15.0_linux_amd64.zip -o vault.zip
+          unzip vault.zip
+          sudo mv vault /usr/local/bin/
+      
+      - name: Initialize Vault & Store Secrets
+        run: |
+          export VAULT_ADDR='http://127.0.0.1:8200'
+          export VAULT_TOKEN='myroot'
+          
+          vault secrets enable -path=secret kv-v2
+          
+          vault kv put secret/cicd/lab4 \
+            api_key="demo-secret-key-12345" \
+            db_password="demo-secure-password-67890"
+          
+      
+      - name: Read and Use Secrets
+        run: |
+          export VAULT_ADDR='http://127.0.0.1:8200'
+          export VAULT_TOKEN='myroot'
+          echo "Vault working"
