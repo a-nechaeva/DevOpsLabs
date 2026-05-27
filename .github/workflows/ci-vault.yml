@@ -23,8 +23,9 @@ jobs:
       - name: Install Vault CLI
         run: |
           curl -fsSL https://releases.hashicorp.com/vault/1.15.0/vault_1.15.0_linux_amd64.zip -o vault.zip
-          unzip vault.zip
+          unzip -o vault.zip
           sudo mv vault /usr/local/bin/
+          rm -f vault.zip
           vault --version
       
       - name: Start Vault in Docker
