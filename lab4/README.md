@@ -12,5 +12,16 @@
 
 5. В плохом файле тестирование происходит после этапа сборки: сначала `Build package`, а потом `Run tests`. Тратятся ресурсы CI на сборку заведомо битого кода. В хорошем варианте сборка запускается только если все тесты прошли: `test` job выполняется до `build`.
 
+   Результаты запусков представлены ниже:
+
+   <img width="1429" height="276" alt="pipe" src="https://github.com/user-attachments/assets/c8157625-fb3e-4fb1-a597-91b0c1de7560" />
+
+   <img width="220" height="130" alt="badpipe" src="https://github.com/user-attachments/assets/7ef568f5-d1f9-4c5b-a39a-e8d8db3f47b4" />
+
+   <img width="1383" height="338" alt="goodpipe" src="https://github.com/user-attachments/assets/9b74d4f3-2641-4fa9-9721-d1c6812c8af1" />
+
+
+
+
 
 ## Часть 2
